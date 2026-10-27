@@ -14,11 +14,13 @@
 # stick-starter, per-platform manifests from kit #7). Order (kit
 # signing/README.md): OS-sign, then the manifest, then the offline release key.
 #
-# Inputs:
-#   out/mac/*.dmg + out/mac/<App>-licences/   from scripts/build-mac-local.sh
-#   in/windows/**/<id>-<version>-windows-x64-portable.zip
-#       from the Build workflow: gh run download <run id> -R Whittaker-Edwards/smartstick-craft -D in/windows
-#       (or download the artifacts on github.com and unzip them into in/windows/)
+# Inputs, from the Build workflow (Windows, and Mac while the repo is public):
+#   in/**/<id>-<version>-windows-x64-portable.zip
+#   in/**/<id>-<version>-macos-universal.dmg  (+ licences/ next to it)
+#       gh run download <run id> -R Whittaker-Edwards/smartstick-craft -D in
+#       (or download the artifacts on github.com and unzip each into in/)
+#   or Mac from scripts/build-mac-local.sh: out/mac/*.dmg + out/mac/<App>-licences/
+#   (a local build in out/mac wins over a downloaded one)
 #
 # Needs: smartstick-desktop-kit next to this repo (with signing.env set up),
 # rustup, cargo-xwin + LLVM (Windows starter), minisign, python3, the offline
@@ -130,11 +132,12 @@ done_apps=() skipped=()
 while read -r id name repo commit version; do
   [[ -n "$id" ]] || continue
   dmg="$(ls "$ROOT"/out/mac/"$id"-"$version"-macos-universal.dmg 2>/dev/null | head -1 || true)"
-  zip="$(find "$ROOT/in/windows" -name "$id-$version-windows-x64-portable.zip" 2>/dev/null | head -1 || true)"
+  [[ -n "$dmg" ]] || dmg="$(find "$ROOT/in" -name "$id-$version-macos-universal.dmg" 2>/dev/null | head -1 || true)"
+  zip="$(find "$ROOT/in" -name "$id-$version-windows-x64-portable.zip" 2>/dev/null | head -1 || true)"
   if [[ -z "$dmg" || -z "$zip" ]]; then
     missing=""
-    [[ -n "$dmg" ]] || missing="Mac build (out/mac/$id-$version-macos-universal.dmg)"
-    [[ -n "$zip" ]] || missing="${missing:+$missing and }Windows build (in/windows)"
+    [[ -n "$dmg" ]] || missing="Mac build ($id-$version-macos-universal.dmg in in/ or out/mac)"
+    [[ -n "$zip" ]] || missing="${missing:+$missing and }Windows build (in/)"
     skipped+=("$name: no $missing")
     continue
   fi
@@ -148,9 +151,9 @@ while read -r id name repo commit version; do
     [[ -f "$src/$f" ]] || fail "$name: upstream $f is missing; the licence needs it on the stick."
     cp "$src/$f" "$dir/licences/"
   done
-  if [[ -d "$ROOT/out/mac/$name-licences" ]]; then
-    find "$ROOT/out/mac/$name-licences" -name 'OFL*.txt' -exec cp {} "$dir/licences/" \;
-  fi
+  for lic in "$ROOT/out/mac/$name-licences" "$(dirname "$dmg")/licences"; do
+    if [[ -d "$lic" ]]; then find "$lic" -name 'OFL*.txt' -exec cp {} "$dir/licences/" \;; fi
+  done
 
   # Windows half: upstream's portable zip, every program Authenticode-signed.
   unzip -q "$zip" -d "$WORK/win-$id"

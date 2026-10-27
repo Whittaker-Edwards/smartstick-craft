@@ -1,10 +1,10 @@
 # smartstick-craft
 
 Builds the ArtCraft team's Craft apps (github.com/storytold) for the Smart Stick's `SmartSuite/` folder.
-Windows builds run on GitHub Actions (Actions > Build > Run workflow). Mac builds run on Ryan's Mac (BUILD-ON-YOUR-MAC.md); the workflow can do them too, at 10x minutes on this private repo.
+Windows and Mac builds run on GitHub Actions (Actions > Build > Run workflow). The Mac jobs run only while this repo is public (Mac minutes cost 10x on a private repo); otherwise build Mac on Ryan's Mac (BUILD-ON-YOUR-MAC.md).
 
 - `apps.json`: the pinned upstream releases (tag + commit + craft-fonts commit).
-- `.github/workflows/build.yml`: per app, upstream's own packaging scripts with no signing secrets → unsigned Windows x64 portable zip (and optionally Mac universal DMG), plus licence files, as workflow artifacts.
+- `.github/workflows/build.yml`: per app, upstream's own packaging scripts with no signing secrets → unsigned Windows x64 portable zip and Mac universal DMG (ad-hoc signed), plus licence files, as workflow artifacts.
 - `scripts/build-mac-local.sh`: local Mac copies (BUILD-ON-YOUR-MAC.md).
 - `scripts/package-stick.sh`: on Ryan's Mac, download the artifacts, `sign-windows.sh` every exe/dll, `sign-mac.sh` the .app, build both starters, `make-manifest.sh --per-platform` for each half, `sign-release.sh`, giving `SmartSuite/<App>/` folders.
 

@@ -33,9 +33,9 @@ Windows builds need Windows (upstream's script uses PowerShell and WiX). They ru
 
 ## Stick folders (signed)
 
-After the Mac builds (above) and a Windows run of the Build workflow:
+After a run of the Build workflow (and the local Mac builds above, if the run didn't build Mac):
 
-1. Download the Windows builds: `gh run download <run id> -R Whittaker-Edwards/smartstick-craft -D in/windows` (or download the artifacts from the run's page on github.com and unzip them into `in/windows/`).
+1. Download the builds: `gh run download <run id> -R Whittaker-Edwards/smartstick-craft -D in` (or download the artifacts from the run's page on github.com and unzip each into `in/`). If the run built Mac too (repo public), you can skip the local Mac builds above; a local build in `out/mac/` is used first when both exist.
 2. Try it with a throwaway key first (no signing, nothing to ship): `scripts/package-stick.sh --test wordcraft`, then copy `dist-stick-test/SmartSuite/WordCraft` to a USB drive and double-click `WordCraft.app` (Mac) / `WordCraft.exe` (PC).
 3. For real, with the offline release drive plugged in: `scripts/package-stick.sh`. It signs every Windows program with Azure (`sign-windows.sh`), the Mac app and starter with the Developer ID (`sign-mac.sh`, notarised), writes `manifest-windows.json` / `manifest-mac.json` and signs them with the release key. Output: `dist-stick/SmartSuite/<App>/`, ready for the updater thread's `ssu build` / `ssu factory`.
 
