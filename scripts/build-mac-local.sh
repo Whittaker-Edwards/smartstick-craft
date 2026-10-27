@@ -36,7 +36,7 @@ for a in "$@"; do
   esac
 done
 
-# id name repo commit fonts, one app per line, in apps.json order
+# id name repo commit fonts tag, one app per line, in apps.json order
 LIST="$(python3 -I - "$ROOT/apps.json" "$PRIORITY" "${WANT[@]+"${WANT[@]}"}" <<'PY'
 import json, sys
 apps = json.load(open(sys.argv[1]))["apps"]
@@ -46,7 +46,7 @@ if unknown:
     sys.exit(f"not in apps.json: {', '.join(sorted(unknown))}")
 for a in apps:
     if (not want or a["id"] in want) and (not prio or a.get("priority")):
-        print(a["id"], a["name"], a["repo"], a["commit"], a["craft_fonts"])
+        print(a["id"], a["name"], a["repo"], a["commit"], a["craft_fonts"], a["tag"])
 PY
 )" || fail "couldn't read apps.json."
 
@@ -65,7 +65,7 @@ fetch() { # repo commit dir
 
 mkdir -p "$WORK" "$OUT"
 ok=() failed=()
-while read -r id name repo commit fonts; do
+while read -r id name repo commit fonts tag; do
   [[ -n "$id" ]] || continue
   say "$name ($repo @ ${commit:0:7})"
   src="$WORK/$id"
@@ -77,6 +77,8 @@ while read -r id name repo commit fonts; do
     fetch storytold/craft-i18n "$rev" "$WORK/craft-i18n-$rev" || { failed+=("$name (translations)"); continue; }
     i18n_dir="$WORK/craft-i18n-$rev"
   fi
+  python3 -I "$ROOT/scripts/restore-fetched-models.py" "$src" "$repo" "$tag" "$id" "$WORK/fetched-$id" \
+    || { failed+=("$name (build-time downloads)"); continue; }
   rm -rf "$src/dist/release"
   if ! (cd "$src" && \
         CRAFT_FONTS_DIR="$WORK/craft-fonts-$fonts" CRAFT_FONTS_REQUIRED=1 \

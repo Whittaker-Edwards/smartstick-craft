@@ -69,6 +69,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
+          path: craft
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
           repository: ${{ matrix.app.repo }}
           ref: ${{ matrix.app.commit }}
           path: src
@@ -90,6 +94,11 @@ jobs:
           ref: ${{ steps.i18n.outputs.rev }}
           path: craft-i18n
           persist-credentials: false
+      - name: Restore build-time downloads that have gone offline
+        shell: bash
+        run: |
+          py=$(command -v python || command -v python3)
+          "$py" craft/scripts/restore-fetched-models.py src "${{ matrix.app.repo }}" "${{ matrix.app.tag }}" "${{ matrix.app.id }}" "${{ runner.temp }}/fetched"
       - name: Rust
         run: |
           rustup toolchain install stable --profile minimal
@@ -134,6 +143,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
+          path: craft
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
           repository: ${{ matrix.app.repo }}
           ref: ${{ matrix.app.commit }}
           path: src
@@ -156,6 +169,11 @@ jobs:
           ref: ${{ steps.i18n.outputs.rev }}
           path: craft-i18n
           persist-credentials: false
+      - name: Restore build-time downloads that have gone offline
+        shell: bash
+        run: |
+          py=$(command -v python || command -v python3)
+          "$py" craft/scripts/restore-fetched-models.py src "${{ matrix.app.repo }}" "${{ matrix.app.tag }}" "${{ matrix.app.id }}" "${{ runner.temp }}/fetched"
       - name: Rust
         run: |
           rustup toolchain install stable --profile minimal
