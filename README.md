@@ -78,4 +78,4 @@ You can use steps 1 and 2 to build the Craft apps for yourself. Step 3's signing
 
 Go to Actions > **Build** > Run workflow. Leave the app list empty to build all of them, or enter ids such as `wordcraft,pdfcraft`. Each app's builds come out as workflow artifacts: `<id>-windows` and `<id>-mac`.
 
-Mac jobs only run while this repository is public. On a private repository, GitHub bills Mac runners at 10x, so the jobs skip themselves and the run shows a warning saying why. A pull request that changes `apps.json` or the workflow builds WordCraft for Windows as a check.
+Mac jobs only run while this repository is public. On a private repository, GitHub bills Mac runners at 10x, so the jobs skip themselves and the run shows a warning saying why. A pull request that changes `apps.json`, the workflow or the scripts builds WordCraft and PDFCraft as a check.
