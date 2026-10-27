@@ -89,6 +89,10 @@ jobs:
         run: |
           rustup toolchain install stable --profile minimal
           rustup target add aarch64-apple-darwin x86_64-apple-darwin
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: src
+          key: mac-${{ matrix.app.id }}
       - name: Build (upstream script, ad-hoc signed, not notarized)
         working-directory: src
         env:
@@ -149,8 +153,14 @@ jobs:
         run: |
           rustup toolchain install stable --profile minimal
           rustup target add x86_64-pc-windows-msvc
-      - name: Install WiX (upstream script also makes the MSI)
-        run: dotnet tool install --global wix
+      - name: Install WiX + UI/Util extensions (upstream script also makes the MSI)
+        run: |
+          dotnet tool install --global wix --version 5.0.2
+          wix extension add -g "WixToolset.UI.wixext/5.0.2" "WixToolset.Util.wixext/5.0.2"
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: src
+          key: windows-${{ matrix.app.id }}
       - name: Build (upstream script, no signing secrets)
         working-directory: src
         env:
