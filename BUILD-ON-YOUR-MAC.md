@@ -30,3 +30,13 @@ For each app in `apps.json`, it downloads the pinned release from github.com/sto
 ## Windows
 
 Windows builds need Windows (upstream's script uses PowerShell and WiX). They run on GitHub's Windows machines: on github.com open smartstick-craft > Actions > Build > Run workflow (empty app list = all 11). Download the artifacts when it finishes; you sign them on this Mac with `sign-windows.sh` (the stick packaging script does that for you).
+
+## Stick folders (signed)
+
+After the Mac builds (above) and a Windows run of the Build workflow:
+
+1. Download the Windows builds: `gh run download <run id> -R Whittaker-Edwards/smartstick-craft -D in/windows` (or download the artifacts from the run's page on github.com and unzip them into `in/windows/`).
+2. Try it with a throwaway key first (no signing, nothing to ship): `scripts/package-stick.sh --test wordcraft`, then copy `dist-stick-test/SmartSuite/WordCraft` to a USB drive and double-click `WordCraft.app` (Mac) / `WordCraft.exe` (PC).
+3. For real, with the offline release drive plugged in: `scripts/package-stick.sh`. It signs every Windows program with Azure (`sign-windows.sh`), the Mac app and starter with the Developer ID (`sign-mac.sh`, notarised), writes `manifest-windows.json` / `manifest-mac.json` and signs them with the release key. Output: `dist-stick/SmartSuite/<App>/`, ready for the updater thread's `ssu build` / `ssu factory`.
+
+`smartstick-desktop-kit` must sit next to this folder, up to date (`git pull`), with `~/.config/smartstick/signing.env` set up as for PhotoFinder.
