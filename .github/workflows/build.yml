@@ -1,7 +1,7 @@
 # Builds each pinned Craft app (apps.json) for the Smart Stick, UNSIGNED:
 # Windows x64 portable and Mac universal (ad-hoc signed by upstream's script).
-# No signing secrets live here. Ryan signs on his Mac with
-# smartstick-desktop-kit/signing (scripts/package-stick.sh).
+# No signing secrets live here. Signing happens offline, on a Mac, with our
+# private signing kit (scripts/package-stick.sh).
 #
 # Mac runners cost 10x minutes on a private repo (a full Mac run is several
 # thousand minutes), so the Mac jobs only run while this repo is public,

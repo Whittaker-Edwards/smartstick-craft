@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# Makes the Craft app folders for the Smart Stick, on Ryan's Mac:
+# Makes the Craft app folders for the Smart Stick, on a Mac that holds our
+# signing setup (the build steps are public; the signing kit and keys aren't):
 #
 #   dist-stick/SmartSuite/WordCraft/
 #     WordCraft.exe            Windows starter (double-click)

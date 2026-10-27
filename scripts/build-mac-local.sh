@@ -4,7 +4,7 @@
 #
 #   scripts/build-mac-local.sh                 every app in apps.json
 #   scripts/build-mac-local.sh wordcraft pdfcraft   just these
-#   scripts/build-mac-local.sh --priority      the five must-haves first
+#   scripts/build-mac-local.sh --priority      only the apps marked priority
 #
 # Output: out/mac/<App>-<version>-macos-universal.dmg plus out/mac/<App>-licences/
 # These are LOCAL copies: ad-hoc signed, not notarized. They open on this Mac
