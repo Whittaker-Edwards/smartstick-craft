@@ -26,7 +26,7 @@ Each app is copyright (c) 2026 ArtCraft Team and that app's contributors. Each o
 | VectorCraft | [storytold/vectorcraft](https://github.com/storytold/vectorcraft) | [v0.17.0](https://github.com/storytold/vectorcraft/tree/43313f9451de7ab5b909801006b8881458f2bf04) | MIT OR Apache-2.0 |
 | LightCraft | [storytold/lightcraft](https://github.com/storytold/lightcraft) | [v0.14.0](https://github.com/storytold/lightcraft/tree/03c88c166c054c009db2a47187d59991f6232b85) | MIT OR Apache-2.0 |
 
-Each app also bundles third-party material under its own licence. This is mainly fonts under the **SIL Open Font License 1.1**. Some apps also include word lists or hyphenation patterns (public domain, CC0, MIT or BSD-3-Clause). Each app lists this material in its `NOTICE` and `ATTRIBUTION.md`.
+Each app also bundles third-party material under its own licence. This is mainly fonts under the **SIL Open Font License 1.1**. Some apps also include word lists or hyphenation patterns (public domain, CC0, MIT or BSD-3-Clause). PDFCraft includes the Ocrs OCR models by Robert Knight under **CC BY-SA 4.0**; their licence and credits ship in its `models/` folder. Each app lists this material in its `NOTICE` and `ATTRIBUTION.md`.
 
 What we ship with every app on the stick (`SmartSuite/<App>/licences/`):
 
@@ -52,6 +52,7 @@ The scripts and workflow in this repository are our own work, under the [MIT Lic
 | `apps.json` | The upstream releases we build, pinned by tag **and** commit, plus the `craft-fonts` commit each release used. |
 | `.github/workflows/build.yml` | GitHub Actions. Builds each app with the app's **own** packaging scripts, giving an unsigned Windows x64 portable zip and an ad-hoc signed Mac universal DMG, plus the licence files. No signing keys or secrets live here. |
 | `scripts/build-mac-local.sh` | The same Mac build, run on your own Mac. |
+| `scripts/restore-fetched-models.py` | Some apps download files during their build (PDFCraft's OCR models). If one of those links stops working, this takes the identical file, checked by SHA-256, from the app's own published release for the same version. |
 | `scripts/package-stick.sh` | Turns the builds into the stick's folder layout, then signs them. Signing needs our private signing kit and keys, so only we can run the signing part. |
 | [`BUILDING.md`](BUILDING.md) | Step-by-step build instructions. |
 
@@ -77,4 +78,4 @@ You can use steps 1 and 2 to build the Craft apps for yourself. Step 3's signing
 
 Go to Actions > **Build** > Run workflow. Leave the app list empty to build all of them, or enter ids such as `wordcraft,pdfcraft`. Each app's builds come out as workflow artifacts: `<id>-windows` and `<id>-mac`.
 
-Mac jobs only run while this repository is public. On a private repository, GitHub bills Mac runners at 10x, so the jobs skip themselves and the run shows a warning saying why. A pull request that changes `apps.json` or the workflow builds WordCraft for Windows as a check.
+Mac jobs only run while this repository is public. On a private repository, GitHub bills Mac runners at 10x, so the jobs skip themselves and the run shows a warning saying why. A pull request that changes `apps.json`, the workflow or the scripts builds WordCraft and PDFCraft as a check.
