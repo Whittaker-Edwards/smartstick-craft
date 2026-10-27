@@ -1,0 +1,104 @@
+{
+  "_about": "Upstream Craft app releases we build for the Smart Stick. Pinned by commit; bump tag and commit together. craft_fonts is the craft-fonts commit upstream's release used. Lineup and priority set by Ryan 2026-10-27 (priority = must be on the Nov 2 sticks).",
+  "apps": [
+    {
+      "id": "wordcraft",
+      "name": "WordCraft",
+      "repo": "storytold/wordcraft",
+      "tag": "v0.11.0",
+      "commit": "e31f2f06a5f8004ceaa88f68c00b47908e321aa4",
+      "craft_fonts": "bfcbf714e45a3ea8e98f88ab2b7971372a576414",
+      "priority": true
+    },
+    {
+      "id": "photocraft",
+      "name": "PhotoCraft",
+      "repo": "storytold/photocraft",
+      "tag": "v0.16.0",
+      "commit": "b1794c6e0608ccfc887213dcf58398977c5cb75e",
+      "craft_fonts": "abb83316d96aa59c1cf64784289e378fe9fa5695",
+      "priority": true
+    },
+    {
+      "id": "filmcraft",
+      "name": "FilmCraft",
+      "repo": "storytold/filmcraft",
+      "tag": "v0.13.0",
+      "commit": "30536bc5d0ddf690f2181b7b97182db8658a6038",
+      "craft_fonts": "bfcbf714e45a3ea8e98f88ab2b7971372a576414",
+      "priority": true
+    },
+    {
+      "id": "pdfcraft",
+      "name": "PDFCraft",
+      "repo": "storytold/pdfcraft",
+      "tag": "v0.14.0",
+      "commit": "5a78b223871add8e3883856205cc653d741e0e94",
+      "craft_fonts": "3d9ab3a132ed0eff457e424226a435a901da30d3",
+      "priority": true
+    },
+    {
+      "id": "gridcraft",
+      "name": "GridCraft",
+      "repo": "storytold/gridcraft",
+      "tag": "v0.12.1",
+      "commit": "f86aec12dabc744b5f75e1033f87bfe685e78481",
+      "craft_fonts": "abb83316d96aa59c1cf64784289e378fe9fa5695",
+      "priority": true
+    },
+    {
+      "id": "deckcraft",
+      "name": "DeckCraft",
+      "repo": "storytold/deckcraft",
+      "tag": "v0.11.1",
+      "commit": "9ec39267931c0163dd5648c879043edcb9603cb8",
+      "craft_fonts": "43913056ce82a3fdad0ef69f6b88d1dc922a8104",
+      "priority": false
+    },
+    {
+      "id": "figcraft",
+      "name": "FigCraft",
+      "repo": "storytold/figcraft",
+      "tag": "v0.11.2",
+      "commit": "d4a303d4708602a9df1738960852d18b185a616b",
+      "craft_fonts": "43913056ce82a3fdad0ef69f6b88d1dc922a8104",
+      "priority": false
+    },
+    {
+      "id": "cadcraft",
+      "name": "CadCraft",
+      "repo": "storytold/cadcraft",
+      "tag": "v0.13.0",
+      "commit": "1fcf654ea8414ea2ef052ca2b3b77411f2026f78",
+      "craft_fonts": "3d9ab3a132ed0eff457e424226a435a901da30d3",
+      "priority": false
+    },
+    {
+      "id": "effectcraft",
+      "name": "EffectCraft",
+      "repo": "storytold/effectcraft",
+      "tag": "v0.17.0",
+      "commit": "362474a843ddb67555d4c2d19ad6a590388aad0e",
+      "craft_fonts": "bfcbf714e45a3ea8e98f88ab2b7971372a576414",
+      "priority": false
+    },
+    {
+      "id": "vectorcraft",
+      "name": "VectorCraft",
+      "repo": "storytold/vectorcraft",
+      "tag": "v0.17.0",
+      "commit": "43313f9451de7ab5b909801006b8881458f2bf04",
+      "craft_fonts": "a71c20e30af613287c504f7e685ca8fad77752bc",
+      "priority": false
+    },
+    {
+      "id": "lightcraft",
+      "name": "LightCraft",
+      "repo": "storytold/lightcraft",
+      "tag": "v0.14.0",
+      "commit": "03c88c166c054c009db2a47187d59991f6232b85",
+      "craft_fonts": "a71c20e30af613287c504f7e685ca8fad77752bc",
+      "priority": false
+    }
+  ]
+}

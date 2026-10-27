@@ -1,0 +1,172 @@
+# Builds each pinned Craft app (apps.json) for the Smart Stick, UNSIGNED:
+# Windows x64 portable, and on request Mac universal (ad-hoc signed by
+# upstream's script). No signing secrets live here. Ryan signs on his Mac with
+# smartstick-desktop-kit/signing (scripts/package-stick.sh).
+#
+# This repo is private, so GitHub bills Mac minutes at 10x: Mac builds are off
+# by default and normally run on Ryan's Mac (scripts/build-mac-local.sh).
+# A pull request builds WordCraft for Windows only, to check the workflow.
+name: Build
+
+on:
+  workflow_dispatch:
+    inputs:
+      apps:
+        description: "App ids, comma-separated (empty: all in apps.json)"
+        type: string
+        default: ""
+      mac:
+        description: "Also build Mac (costs 10x minutes on a private repo)"
+        type: boolean
+        default: false
+  pull_request:
+    paths: [apps.json, .github/workflows/build.yml]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    outputs:
+      apps: ${{ steps.pick.outputs.apps }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: pick
+        env:
+          WANT: ${{ github.event_name == 'pull_request' && 'wordcraft' || inputs.apps }}
+        run: |
+          python3 - <<'PY' >> "$GITHUB_OUTPUT"
+          import json, os
+          apps = json.load(open("apps.json"))["apps"]
+          want = {a.strip() for a in os.environ.get("WANT", "").split(",") if a.strip()}
+          unknown = want - {a["id"] for a in apps}
+          if unknown:
+              raise SystemExit(f"not in apps.json: {sorted(unknown)}")
+          picked = [a for a in apps if not want or a["id"] in want]
+          print("apps=" + json.dumps(picked))
+          PY
+
+  mac:
+    needs: plan
+    if: inputs.mac
+    name: Mac ${{ matrix.app.name }}
+    runs-on: macos-15
+    timeout-minutes: 180
+    strategy:
+      fail-fast: false
+      matrix:
+        app: ${{ fromJson(needs.plan.outputs.apps) }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          repository: ${{ matrix.app.repo }}
+          ref: ${{ matrix.app.commit }}
+          path: src
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          repository: storytold/craft-fonts
+          ref: ${{ matrix.app.craft_fonts }}
+          path: craft-fonts
+          persist-credentials: false
+      - name: craft-i18n pin
+        id: i18n
+        run: |
+          [ -f src/craft-i18n.rev ] && echo "rev=$(tr -d '[:space:]' < src/craft-i18n.rev)" >> "$GITHUB_OUTPUT" || true
+      - uses: actions/checkout@v4
+        if: steps.i18n.outputs.rev != ''
+        with:
+          repository: storytold/craft-i18n
+          ref: ${{ steps.i18n.outputs.rev }}
+          path: craft-i18n
+          persist-credentials: false
+      - name: Rust
+        run: |
+          rustup toolchain install stable --profile minimal
+          rustup target add aarch64-apple-darwin x86_64-apple-darwin
+      - name: Build (upstream script, ad-hoc signed, not notarized)
+        working-directory: src
+        env:
+          CRAFT_FONTS_DIR: ${{ github.workspace }}/craft-fonts
+          CRAFT_FONTS_REQUIRED: "1"
+          CRAFT_I18N_DIR: ${{ steps.i18n.outputs.rev != '' && format('{0}/craft-i18n', github.workspace) || '' }}
+        run: packaging/macos/package.sh --arch universal
+      - name: Collect
+        run: |
+          mkdir -p out/licences
+          cp src/dist/*-macos-universal.dmg out/ 2>/dev/null || find src -name "*-macos-universal.dmg" -exec cp {} out/ \;
+          for f in LICENSE-MIT LICENSE-APACHE NOTICE ATTRIBUTION.md; do cp "src/$f" out/licences/; done
+          find src/assets/fonts craft-fonts -name 'OFL*.txt' -exec cp {} out/licences/ \; 2>/dev/null || true
+          [ -f craft-fonts/ATTRIBUTION.md ] && cp craft-fonts/ATTRIBUTION.md out/licences/craft-fonts-ATTRIBUTION.md || true
+          printf '%s %s %s\n' "${{ matrix.app.repo }}" "${{ matrix.app.tag }}" "${{ matrix.app.commit }}" > out/SOURCE.txt
+          ls -la out
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.app.id }}-mac
+          path: out/
+          if-no-files-found: error
+
+  windows:
+    needs: plan
+    name: Windows ${{ matrix.app.name }}
+    runs-on: windows-latest
+    timeout-minutes: 180
+    strategy:
+      fail-fast: false
+      matrix:
+        app: ${{ fromJson(needs.plan.outputs.apps) }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          repository: ${{ matrix.app.repo }}
+          ref: ${{ matrix.app.commit }}
+          path: src
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          repository: storytold/craft-fonts
+          ref: ${{ matrix.app.craft_fonts }}
+          path: craft-fonts
+          persist-credentials: false
+      - name: craft-i18n pin
+        id: i18n
+        shell: bash
+        run: |
+          [ -f src/craft-i18n.rev ] && echo "rev=$(tr -d '[:space:]' < src/craft-i18n.rev)" >> "$GITHUB_OUTPUT" || true
+      - uses: actions/checkout@v4
+        if: steps.i18n.outputs.rev != ''
+        with:
+          repository: storytold/craft-i18n
+          ref: ${{ steps.i18n.outputs.rev }}
+          path: craft-i18n
+          persist-credentials: false
+      - name: Rust
+        run: |
+          rustup toolchain install stable --profile minimal
+          rustup target add x86_64-pc-windows-msvc
+      - name: Install WiX (upstream script also makes the MSI)
+        run: dotnet tool install --global wix
+      - name: Build (upstream script, no signing secrets)
+        working-directory: src
+        env:
+          CRAFT_FONTS_DIR: ${{ github.workspace }}\craft-fonts
+          CRAFT_FONTS_REQUIRED: "1"
+          CRAFT_I18N_DIR: ${{ steps.i18n.outputs.rev != '' && format('{0}\craft-i18n', github.workspace) || '' }}
+        run: ./packaging/windows/package.ps1 -Arch x64
+      - name: Collect the portable zip
+        shell: bash
+        run: |
+          mkdir -p out
+          find src -name "*-windows-x64-portable.zip" -exec cp {} out/ \;
+          ls out/*.zip
+          printf '%s %s %s\n' "${{ matrix.app.repo }}" "${{ matrix.app.tag }}" "${{ matrix.app.commit }}" > out/SOURCE.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.app.id }}-windows
+          path: out/
+          if-no-files-found: error
