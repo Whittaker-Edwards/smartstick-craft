@@ -1,10 +1,11 @@
 # Builds each pinned Craft app (apps.json) for the Smart Stick, UNSIGNED:
-# Windows x64 portable, and on request Mac universal (ad-hoc signed by
-# upstream's script). No signing secrets live here. Ryan signs on his Mac with
-# smartstick-desktop-kit/signing (scripts/package-stick.sh).
+# Windows x64 portable and Mac universal (ad-hoc signed by upstream's script).
+# No signing secrets live here. Signing happens offline, on a Mac, with our
+# private signing kit (scripts/package-stick.sh).
 #
-# This repo is private, so GitHub bills Mac minutes at 10x: Mac builds are off
-# by default and normally run on Ryan's Mac (scripts/build-mac-local.sh).
+# Mac runners cost 10x minutes on a private repo (a full Mac run is several
+# thousand minutes), so the Mac jobs only run while this repo is public,
+# where Actions minutes are free. scripts/build-mac-local.sh still works.
 # A pull request builds WordCraft for Windows only, to check the workflow.
 name: Build
 
@@ -16,9 +17,9 @@ on:
         type: string
         default: ""
       mac:
-        description: "Also build Mac (costs 10x minutes on a private repo)"
+        description: "Also build Mac (runs only while the repo is public)"
         type: boolean
-        default: false
+        default: true
   pull_request:
     paths: [apps.json, .github/workflows/build.yml]
 
@@ -50,10 +51,14 @@ jobs:
           picked = [a for a in apps if not want or a["id"] in want]
           print("apps=" + json.dumps(picked))
           PY
+      - name: Say why Mac is skipped
+        if: inputs.mac && github.event.repository.private
+        run: |
+          echo "::warning::Mac builds skipped: this repo is private (Mac minutes cost 10x). Make it public to build Mac here, or use scripts/build-mac-local.sh."
 
   mac:
     needs: plan
-    if: inputs.mac
+    if: inputs.mac && !github.event.repository.private
     name: Mac ${{ matrix.app.name }}
     runs-on: macos-15
     timeout-minutes: 180
@@ -103,7 +108,8 @@ jobs:
       - name: Collect
         run: |
           mkdir -p out/licences
-          cp src/dist/*-macos-universal.dmg out/ 2>/dev/null || find src -name "*-macos-universal.dmg" -exec cp {} out/ \;
+          find src/dist/release -name "*-macos-universal.dmg" ! -name "*-cli-*" -exec cp {} out/ \;
+          ls out/*.dmg
           for f in LICENSE-MIT LICENSE-APACHE NOTICE ATTRIBUTION.md; do cp "src/$f" out/licences/; done
           find src/assets/fonts craft-fonts -name 'OFL*.txt' -exec cp {} out/licences/ \; 2>/dev/null || true
           [ -f craft-fonts/ATTRIBUTION.md ] && cp craft-fonts/ATTRIBUTION.md out/licences/craft-fonts-ATTRIBUTION.md || true
@@ -114,6 +120,7 @@ jobs:
           name: ${{ matrix.app.id }}-mac
           path: out/
           if-no-files-found: error
+          compression-level: 0
 
   windows:
     needs: plan
