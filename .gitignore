@@ -3,3 +3,4 @@ out/
 in/
 dist-stick/
 dist-stick-test/
+__pycache__/
