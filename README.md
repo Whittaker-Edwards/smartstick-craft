@@ -54,6 +54,7 @@ The scripts and workflow in this repository are our own work, under the [MIT Lic
 | `scripts/build-mac-local.sh` | The same Mac build, run on your own Mac. |
 | `scripts/restore-fetched-models.py` | Some apps download files during their build (PDFCraft's OCR models). If one of those links stops working, this takes the identical file, checked by SHA-256, from the app's own published release for the same version. |
 | `scripts/package-stick.sh` | Turns the builds into the stick's folder layout, then signs them. Signing needs our private signing kit and keys, so only we can run the signing part. |
+| `scripts/check-mac.sh` | Checks packaged Mac apps: universal (Apple silicon + Intel), Developer ID signature with hardened runtime, Gatekeeper, stapled notarisation. |
 | [`BUILDING.md`](BUILDING.md) | Step-by-step build instructions. |
 
 ## How it works

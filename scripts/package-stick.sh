@@ -189,6 +189,9 @@ while read -r id name repo commit version; do
   lipo -create -output "$WORK/stick-starter-$id" \
     "$KIT/target/aarch64-apple-darwin/release/stick-starter" \
     "$KIT/target/x86_64-apple-darwin/release/stick-starter"
+  # Drop the linker's ad-hoc signature so sign-mac.sh always signs the starter
+  # with the Developer ID (it skips an .app that already verifies).
+  codesign --remove-signature "$WORK/stick-starter-$id"
   "$KIT/crates/stick-starter/make-mac-app.sh" --name "$name" \
     --bundle-id "com.smartstick.craft.$id.starter" --version "$version" \
     --binary "$WORK/stick-starter-$id" ${icns:+--icon "$icns"} "$dir"

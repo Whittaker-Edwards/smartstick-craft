@@ -58,3 +58,10 @@ This step needs our private signing kit (`smartstick-desktop-kit`, cloned next t
    - copies each app's licence files into its folder
 
    The output goes to `dist-stick/SmartSuite/<App>/`.
+4. Check the Mac half: `scripts/check-mac.sh`. For every app and starter, it checks:
+   - it runs on both Apple silicon and Intel (`lipo -archs`)
+   - the signature is valid (`codesign --verify`), from a Developer ID, with the hardened runtime
+   - Gatekeeper accepts it (`spctl`)
+   - the notarisation ticket is stapled (`xcrun stapler validate`)
+
+   Point it at a stick to check the copy there: `scripts/check-mac.sh /Volumes/<stick>/SmartSuite`.
