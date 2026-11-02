@@ -90,7 +90,7 @@ while read -r id name repo commit fonts tag; do
   [[ -n "$dmg" ]] || { failed+=("$name (no DMG made: see work/$id.log)"); continue; }
   cp "$dmg" "$OUT/"
   lic="$OUT/$name-licences"; rm -rf "$lic"; mkdir -p "$lic"
-  for f in LICENSE-MIT LICENSE-APACHE NOTICE ATTRIBUTION.md; do
+  for f in LICENSE-MIT LICENSE-APACHE NOTICE ATTRIBUTION.md assets/ATTRIBUTION.md; do
     if [[ -f "$src/$f" ]]; then cp "$src/$f" "$lic/"; fi
   done
   find "$src/assets" "$WORK/craft-fonts-$fonts" -name 'OFL*.txt' -exec cp {} "$lic/" \; 2>/dev/null || true
