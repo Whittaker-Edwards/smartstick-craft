@@ -19,11 +19,6 @@ Each app is copyright (c) 2026 ArtCraft Team and that app's contributors. Each o
 | FilmCraft | [storytold/filmcraft](https://github.com/storytold/filmcraft) | [v0.13.0](https://github.com/storytold/filmcraft/tree/30536bc5d0ddf690f2181b7b97182db8658a6038) | MIT OR Apache-2.0 |
 | PDFCraft | [storytold/pdfcraft](https://github.com/storytold/pdfcraft) | [v0.14.0](https://github.com/storytold/pdfcraft/tree/5a78b223871add8e3883856205cc653d741e0e94) | MIT OR Apache-2.0 |
 | GridCraft | [storytold/gridcraft](https://github.com/storytold/gridcraft) | [v0.12.1](https://github.com/storytold/gridcraft/tree/f86aec12dabc744b5f75e1033f87bfe685e78481) | MIT OR Apache-2.0 |
-| DeckCraft | [storytold/deckcraft](https://github.com/storytold/deckcraft) | [v0.11.1](https://github.com/storytold/deckcraft/tree/9ec39267931c0163dd5648c879043edcb9603cb8) | MIT OR Apache-2.0 |
-| FigCraft | [storytold/figcraft](https://github.com/storytold/figcraft) | [v0.11.2](https://github.com/storytold/figcraft/tree/d4a303d4708602a9df1738960852d18b185a616b) | MIT OR Apache-2.0 |
-| CadCraft | [storytold/cadcraft](https://github.com/storytold/cadcraft) | [v0.13.0](https://github.com/storytold/cadcraft/tree/1fcf654ea8414ea2ef052ca2b3b77411f2026f78) | MIT OR Apache-2.0 |
-| EffectCraft | [storytold/effectcraft](https://github.com/storytold/effectcraft) | [v0.17.0](https://github.com/storytold/effectcraft/tree/362474a843ddb67555d4c2d19ad6a590388aad0e) | MIT OR Apache-2.0 |
-| VectorCraft | [storytold/vectorcraft](https://github.com/storytold/vectorcraft) | [v0.17.0](https://github.com/storytold/vectorcraft/tree/43313f9451de7ab5b909801006b8881458f2bf04) | MIT OR Apache-2.0 |
 | LightCraft | [storytold/lightcraft](https://github.com/storytold/lightcraft) | [v0.14.0](https://github.com/storytold/lightcraft/tree/03c88c166c054c009db2a47187d59991f6232b85) | MIT OR Apache-2.0 |
 
 Each app also bundles third-party material under its own licence. This is mainly fonts under the **SIL Open Font License 1.1**. Some apps also include word lists or hyphenation patterns (public domain, CC0, MIT or BSD-3-Clause). PDFCraft includes the Ocrs OCR models by Robert Knight under **CC BY-SA 4.0**; their licence and credits ship in its `models/` folder. Each app lists this material in its `NOTICE` and `ATTRIBUTION.md`.
