@@ -40,7 +40,7 @@ jobs:
       - uses: actions/checkout@v4
       - id: pick
         env:
-          WANT: ${{ github.event_name == 'pull_request' && 'wordcraft,pdfcraft' || inputs.apps }}
+          WANT: ${{ github.event_name == 'pull_request' && 'wordcraft,pdfcraft,lightcraft' || inputs.apps }}
         run: |
           python3 - <<'PY' >> "$GITHUB_OUTPUT"
           import json, os
