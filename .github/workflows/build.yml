@@ -40,7 +40,7 @@ jobs:
       - uses: actions/checkout@v4
       - id: pick
         env:
-          WANT: ${{ github.event_name == 'pull_request' && 'wordcraft,pdfcraft' || inputs.apps }}
+          WANT: ${{ github.event_name == 'pull_request' && 'wordcraft,pdfcraft,lightcraft' || inputs.apps }}
         run: |
           python3 - <<'PY' >> "$GITHUB_OUTPUT"
           import json, os
@@ -120,7 +120,9 @@ jobs:
           mkdir -p out/licences
           find src/dist/release -name "*-macos-universal.dmg" ! -name "*-cli-*" -exec cp {} out/ \;
           ls out/*.dmg
-          for f in LICENSE-MIT LICENSE-APACHE NOTICE ATTRIBUTION.md; do cp "src/$f" out/licences/; done
+          for f in LICENSE-MIT LICENSE-APACHE NOTICE; do cp "src/$f" out/licences/; done
+          # ATTRIBUTION.md is at the root in most apps, in assets/ in some (LightCraft).
+          cp "$(ls src/ATTRIBUTION.md src/assets/ATTRIBUTION.md 2>/dev/null | head -1)" out/licences/ATTRIBUTION.md
           find src/assets/fonts craft-fonts -name 'OFL*.txt' -exec cp {} out/licences/ \; 2>/dev/null || true
           [ -f craft-fonts/ATTRIBUTION.md ] && cp craft-fonts/ATTRIBUTION.md out/licences/craft-fonts-ATTRIBUTION.md || true
           printf '%s %s %s\n' "${{ matrix.app.repo }}" "${{ matrix.app.tag }}" "${{ matrix.app.commit }}" > out/SOURCE.txt

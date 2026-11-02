@@ -168,8 +168,11 @@ while read -r id name repo commit version; do
   # Licences, in both packages: the files upstream ships with the app, plus
   # its font licences.
   for f in LICENSE-MIT LICENSE-APACHE NOTICE ATTRIBUTION.md; do
-    [[ -f "$src/$f" ]] || fail "$name: upstream $f is missing; the licence needs it on the stick."
-    cp "$src/$f" "$pc/licences/"
+    from="$src/$f"
+    # ATTRIBUTION.md is at the root in most apps, in assets/ in some (LightCraft).
+    [[ -f "$from" || "$f" != ATTRIBUTION.md ]] || from="$src/assets/$f"
+    [[ -f "$from" ]] || fail "$name: upstream $f is missing; the licence needs it on the stick."
+    cp "$from" "$pc/licences/"
   done
   for lic in "$ROOT/out/mac/$name-licences" "$(dirname "$dmg")/licences"; do
     if [[ -d "$lic" ]]; then find "$lic" -name 'OFL*.txt' -exec cp {} "$pc/licences/" \;; fi
