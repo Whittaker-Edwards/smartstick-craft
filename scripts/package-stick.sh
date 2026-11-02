@@ -66,6 +66,8 @@ done
 [[ -x "$KIT/signing/make-manifest.sh" ]] || fail "smartstick-desktop-kit must sit next to this repo."
 grep -q -- "--per-platform" "$KIT/signing/make-manifest.sh" \
   || fail "update smartstick-desktop-kit (git pull): it needs kit #7 (per-platform manifests)."
+grep -q "STICK_STARTER_ENV_FILES" "$KIT/crates/stick-starter/src/main.rs" \
+  || fail "update smartstick-desktop-kit (git pull): its starter must set CRAFT_VERSIONS_FILE."
 command -v minisign >/dev/null || fail "minisign isn't installed (brew install minisign)."
 command -v cargo-xwin >/dev/null || fail "cargo-xwin isn't installed (cargo install --locked cargo-xwin)."
 if [[ -z "${RC:-}" ]] && ! command -v llvm-rc >/dev/null && command -v brew >/dev/null; then
@@ -124,8 +126,12 @@ source_of() { # id repo commit
 # A starter with the app's id, name and the trusted keys baked in.
 build_starter() { # id name icon target [cargo subcommand...]
   local id="$1" name="$2" icon="$3" target="$4"; shift 4
+  # The starter points CRAFT_VERSIONS_FILE at the checked copy of the pin file.
+  local half=app-mac
+  [[ "$target" != *windows* ]] || half=app-windows
   local vars=(STICK_STARTER_APP_ID="$id" STICK_STARTER_APP_NAME="$name"
-    STICK_STARTER_PUBKEYS="$PUBKEYS" STICK_STARTER_CACHE_NS="Smart Stick")
+    STICK_STARTER_PUBKEYS="$PUBKEYS" STICK_STARTER_CACHE_NS="Smart Stick"
+    STICK_STARTER_ENV_FILES="CRAFT_VERSIONS_FILE=$half/craft-versions.json")
   [[ -z "$icon" ]] || vars+=(STICK_STARTER_ICON="$icon")
   (cd "$KIT" && env -u STICK_STARTER_ICON "${vars[@]}" \
     "$@" build --release --locked -p stick-starter --target "$target" >&2)
