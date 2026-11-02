@@ -3,15 +3,15 @@
 # both chips (Apple silicon + Intel), a valid Developer ID signature with the
 # hardened runtime, Gatekeeper's verdict and the stapled notarisation ticket.
 #
-#   scripts/check-mac.sh                       every app in dist-stick/SmartSuite
-#   scripts/check-mac.sh path/to/SmartSuite    another folder (e.g. on the stick)
+#   scripts/check-mac.sh                       every app in dist-stick/Mac/.apps
+#   scripts/check-mac.sh /Volumes/SmartStick/Mac/.apps   another folder (e.g. on the stick)
 #
 # Each .app gets a line per check; it ends with "all good" or the list of
 # problems. A --test build fails the signing checks by design.
 set -uo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-SUITE="${1:-$ROOT/dist-stick/SmartSuite}"
+SUITE="${1:-$ROOT/dist-stick/Mac/.apps}"
 [[ "$(uname)" == "Darwin" ]] || { echo "Run this on a Mac." >&2; exit 2; }
 [[ -d "$SUITE" ]] || { echo "No such folder: $SUITE" >&2; exit 2; }
 

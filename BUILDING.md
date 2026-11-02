@@ -49,19 +49,19 @@ scripts/build-mac-local.sh --priority     # only the apps marked priority
 This step needs our private signing kit (`smartstick-desktop-kit`, cloned next to this repo) and our signing keys. Without them it can't run, except in test mode.
 
 1. Put the builds in place: Windows zips under `in/`, and Mac DMGs under `in/` (from GitHub) or `out/mac/` (local builds). If both exist, the local Mac build is used.
-2. Test run, with a throwaway key and no OS signing: `scripts/package-stick.sh --test wordcraft`. This writes `dist-stick-test/SmartSuite/WordCraft/`. Copy it to a USB drive and open `WordCraft.app` on a Mac or `WordCraft.exe` on a PC. Never ship a test build.
+2. Test run, with a throwaway key and no OS signing: `scripts/package-stick.sh --test wordcraft`. This writes `dist-stick-test/PC/.apps/WordCraft/` and `dist-stick-test/Mac/.apps/WordCraft/`. Copy them to a USB drive and open `WordCraft.app` on a Mac or `WordCraft.exe` on a PC. Never ship a test build.
 3. Real run: `scripts/package-stick.sh`, with the offline release key available. It does five things:
    - signs every Windows program (Authenticode)
    - signs the Mac app and its starter with the Developer ID, then notarises them
    - writes `manifest-windows.json` and `manifest-mac.json`
    - signs both manifests with the release key
-   - copies each app's licence files into its folder
+   - copies each app's licence files and `craft-versions.json` into both its folders
 
-   The output goes to `dist-stick/SmartSuite/<App>/`.
+   The output goes to `dist-stick/PC/.apps/<App>/` and `dist-stick/Mac/.apps/<App>/`. The `.apps` folders start with a dot, so Finder hides them; press Cmd+Shift+. to see them.
 4. Check the Mac half: `scripts/check-mac.sh`. For every app and starter, it checks:
    - it runs on both Apple silicon and Intel (`lipo -archs`)
    - the signature is valid (`codesign --verify`), from a Developer ID, with the hardened runtime
    - Gatekeeper accepts it (`spctl`)
    - the notarisation ticket is stapled (`xcrun stapler validate`)
 
-   Point it at a stick to check the copy there: `scripts/check-mac.sh /Volumes/<stick>/SmartSuite`.
+   Point it at a stick to check the copy there: `scripts/check-mac.sh /Volumes/SmartStick/Mac/.apps`.

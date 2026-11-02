@@ -23,7 +23,7 @@ Each app is copyright (c) 2026 ArtCraft Team and that app's contributors. Each o
 
 Each app also bundles third-party material under its own licence. This is mainly fonts under the **SIL Open Font License 1.1**. Some apps also include word lists or hyphenation patterns (public domain, CC0, MIT or BSD-3-Clause). PDFCraft includes the Ocrs OCR models by Robert Knight under **CC BY-SA 4.0**; their licence and credits ship in its `models/` folder. Each app lists this material in its `NOTICE` and `ATTRIBUTION.md`.
 
-What we ship with every app on the stick (`SmartSuite/<App>/licences/`):
+What we ship with every app on the stick, in both its Windows and Mac folders (`PC/.apps/<App>/licences/` and `Mac/.apps/<App>/licences/`):
 
 - `LICENSE-MIT` and `LICENSE-APACHE`
 - `NOTICE`
@@ -56,17 +56,24 @@ The scripts and workflow in this repository are our own work, under the [MIT Lic
 
 1. **Pin.** `apps.json` names each app's GitHub repo, release tag and the commit behind that tag. To update an app, change the tag and commit together.
 2. **Build.** For each app, the workflow (or `build-mac-local.sh`) checks out that exact commit, along with the fonts and translations the release used. Then it runs the app's own `packaging/windows/package.ps1` or `packaging/macos/package.sh`. We change nothing in the apps' code.
-3. **Package.** `package-stick.sh` lays each app out as:
+3. **Package.** `package-stick.sh` lays each app out as one folder per platform:
 
    ```
-   SmartSuite/<App>/
-     <App>.exe, <App>.app           small starters that check the files, then open the app
-     app-windows/, app-mac/         the upstream builds
-     manifest-windows.json, manifest-mac.json  (+ .minisig)
+   PC/.apps/<App>/
+     <App>.exe                      small starter that checks the files, then opens the app
+     app-windows/                   the upstream build, plus craft-versions.json
+     manifest-windows.json (+ .minisig)
+     licences/
+   Mac/.apps/<App>/
+     <App>.app                      the same starter for Mac
+     app-mac/                       the upstream build, plus craft-versions.json
+     manifest-mac.json (+ .minisig)
      licences/
    ```
 
    It signs the Windows programs with Authenticode and the Mac apps with an Apple Developer ID. Each manifest lists every file with its checksum and is signed with an offline key. The starter only opens the app if every file matches.
+
+   `craft-versions.json` pins each app to the version on the stick. Recent releases of the apps can check GitHub for a newer version and replace themselves, which would break the signed copy on the stick. With this file in place they offer no update and contact nothing; the stick gets new versions from its own updater instead. Older releases have no update check and ignore the file.
 
 You can use steps 1 and 2 to build the Craft apps for yourself. Step 3's signing is specific to the Smart Stick.
 

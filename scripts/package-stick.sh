@@ -2,18 +2,31 @@
 # Makes the Craft app folders for the Smart Stick, on a Mac that holds our
 # signing setup (the build steps are public; the signing kit and keys aren't):
 #
-#   dist-stick/SmartSuite/WordCraft/
-#     WordCraft.exe            Windows starter (double-click)
-#     WordCraft.app            Mac starter (double-click)
-#     app-windows/             upstream's Windows portable build, Authenticode-signed
-#     app-mac/WordCraft.app    upstream's Mac build, Developer ID signed + notarised
-#     manifest-windows.json(.minisig)  manifest-mac.json(.minisig)
+#   dist-stick/PC/.apps/WordCraft/
+#     WordCraft.exe            Windows starter
+#     app-windows/             upstream's Windows portable build, Authenticode-signed,
+#                              plus craft-versions.json
+#     manifest-windows.json(.minisig)
 #     licences/                LICENSE-MIT, LICENSE-APACHE, NOTICE, ATTRIBUTION.md, OFL-*.txt
+#   dist-stick/Mac/.apps/WordCraft/
+#     WordCraft.app            Mac starter
+#     app-mac/WordCraft.app    upstream's Mac build, Developer ID signed + notarised
+#     app-mac/craft-versions.json
+#     manifest-mac.json(.minisig)
+#     licences/                (same files)
 #
-# The starters copy their platform's half to the computer, check every file
-# against the signed manifest and open it (smartstick-desktop-kit
-# stick-starter, per-platform manifests from kit #7). Order (kit
-# signing/README.md): OS-sign, then the manifest, then the offline release key.
+# Each platform's folder is its own update package. The Smart Stick Suite opens
+# the starter, which copies the app to the computer, checks every file against
+# the signed manifest and opens it (smartstick-desktop-kit stick-starter,
+# per-platform manifests from kit #7). Order (kit signing/README.md): OS-sign,
+# then the manifest, then the offline release key.
+#
+# craft-versions.json pins the app to the version we ship
+# ({"apps":{"<id>":{"Pinned":"<version>"}}}). Newer upstream releases read it
+# (craft-update's version-choice file, via CRAFT_VERSIONS_FILE, which the
+# starter sets) and then never offer an update of their own or contact GitHub,
+# so updates come only from the Smart Stick updater. Older releases have no
+# update check and ignore it.
 #
 # Inputs, from the Build workflow (Windows, and Mac while the repo is public):
 #   in/**/<id>-<version>-windows-x64-portable.zip
@@ -128,6 +141,11 @@ sign_manifest() { # folder name
   fi
 }
 
+# Pins the app to the version we ship, so it never offers its own update.
+craft_versions() { # id version
+  python3 -I -c 'import json, sys; print(json.dumps({"apps": {sys.argv[1]: {"Pinned": sys.argv[2]}}}, indent=2))' "$1" "$2"
+}
+
 rustup target add x86_64-pc-windows-msvc aarch64-apple-darwin x86_64-apple-darwin >/dev/null
 done_apps=() skipped=()
 while read -r id name repo commit version; do
@@ -144,36 +162,39 @@ while read -r id name repo commit version; do
   fi
   say "$name $version"
   src="$(source_of "$id" "$repo" "$commit")"
-  dir="$OUT/SmartSuite/$name"
-  mkdir -p "$dir/app-windows" "$dir/app-mac" "$dir/licences"
+  pc="$OUT/PC/.apps/$name" mac="$OUT/Mac/.apps/$name"
+  mkdir -p "$pc/app-windows" "$pc/licences" "$mac/app-mac" "$mac/licences"
 
-  # Licences: the files upstream ships with the app, plus its font licences.
+  # Licences, in both packages: the files upstream ships with the app, plus
+  # its font licences.
   for f in LICENSE-MIT LICENSE-APACHE NOTICE ATTRIBUTION.md; do
     [[ -f "$src/$f" ]] || fail "$name: upstream $f is missing; the licence needs it on the stick."
-    cp "$src/$f" "$dir/licences/"
+    cp "$src/$f" "$pc/licences/"
   done
   for lic in "$ROOT/out/mac/$name-licences" "$(dirname "$dmg")/licences"; do
-    if [[ -d "$lic" ]]; then find "$lic" -name 'OFL*.txt' -exec cp {} "$dir/licences/" \;; fi
+    if [[ -d "$lic" ]]; then find "$lic" -name 'OFL*.txt' -exec cp {} "$pc/licences/" \;; fi
   done
+  cp "$pc/licences/"* "$mac/licences/"
 
   # Windows half: upstream's portable zip, every program Authenticode-signed.
   unzip -q "$zip" -d "$WORK/win-$id"
   inner="$(find "$WORK/win-$id" -name "$id.exe" -print -quit)"
   [[ -n "$inner" ]] || fail "$name: $id.exe isn't in $(basename "$zip")."
-  ditto "$(dirname "$inner")" "$dir/app-windows"
+  ditto "$(dirname "$inner")" "$pc/app-windows"
+  craft_versions "$id" "$version" > "$pc/app-windows/craft-versions.json"
   ico="$(find "$src/assets" -name "$id.ico" -print -quit 2>/dev/null || true)"
   starter="$(build_starter "$id" "$name" "$ico" x86_64-pc-windows-msvc cargo xwin).exe"
-  cp "$starter" "$dir/$name.exe"
+  cp "$starter" "$pc/$name.exe"
   if [[ $TEST == 0 ]]; then
     progs=()
     while IFS= read -r -d '' p; do progs+=("$p"); done \
-      < <(find "$dir/app-windows" -type f \( -iname '*.exe' -o -iname '*.dll' \) -print0)
-    "$KIT/signing/sign-windows.sh" "${progs[@]}" "$dir/$name.exe"
+      < <(find "$pc/app-windows" -type f \( -iname '*.exe' -o -iname '*.dll' \) -print0)
+    "$KIT/signing/sign-windows.sh" "${progs[@]}" "$pc/$name.exe"
   fi
   "$KIT/signing/make-manifest.sh" --app-id "$id" --version "$version" \
     --platform windows-x86_64 --files app-windows --per-platform \
-    --entry "app-windows/$id.exe" "$dir"
-  sign_manifest "$dir" manifest-windows.json
+    --entry "app-windows/$id.exe" "$pc"
+  sign_manifest "$pc" manifest-windows.json
 
   # Mac half: the app from upstream's DMG, re-signed with our Developer ID.
   MOUNT="$WORK/mnt-$id"
@@ -182,9 +203,10 @@ while read -r id name repo commit version; do
   app="$(find "$MOUNT" -maxdepth 1 -name '*.app' -print -quit)"
   [[ -n "$app" ]] || fail "$name: no .app in $(basename "$dmg")."
   appname="$(basename "$app")"
-  ditto "$app" "$dir/app-mac/$appname"
+  ditto "$app" "$mac/app-mac/$appname"
+  craft_versions "$id" "$version" > "$mac/app-mac/craft-versions.json"
   hdiutil detach -quiet "$MOUNT"; MOUNT=""
-  icns="$(find "$dir/app-mac/$appname/Contents/Resources" -name '*.icns' -print -quit)"
+  icns="$(find "$mac/app-mac/$appname/Contents/Resources" -name '*.icns' -print -quit)"
   for t in aarch64-apple-darwin x86_64-apple-darwin; do build_starter "$id" "$name" "" "$t" cargo >/dev/null; done
   lipo -create -output "$WORK/stick-starter-$id" \
     "$KIT/target/aarch64-apple-darwin/release/stick-starter" \
@@ -194,26 +216,28 @@ while read -r id name repo commit version; do
   codesign --remove-signature "$WORK/stick-starter-$id"
   "$KIT/crates/stick-starter/make-mac-app.sh" --name "$name" \
     --bundle-id "com.smartstick.craft.$id.starter" --version "$version" \
-    --binary "$WORK/stick-starter-$id" ${icns:+--icon "$icns"} "$dir"
+    --binary "$WORK/stick-starter-$id" ${icns:+--icon "$icns"} "$mac"
   if [[ $TEST == 0 ]]; then
     # Upstream's own hardened-runtime entitlements. Passing them also makes
     # sign-mac.sh replace the local (ad-hoc) signature with the Developer ID.
     ent="$src/packaging/macos/entitlements.plist"
     [[ -f "$ent" ]] || fail "$name: upstream packaging/macos/entitlements.plist is missing."
-    "$KIT/signing/sign-mac.sh" "$dir/app-mac/$appname" --entitlements "$ent"
-    "$KIT/signing/sign-mac.sh" "$dir/$name.app"
+    "$KIT/signing/sign-mac.sh" "$mac/app-mac/$appname" --entitlements "$ent"
+    "$KIT/signing/sign-mac.sh" "$mac/$name.app"
   else
-    codesign --force --deep --sign - "$dir/app-mac/$appname" "$dir/$name.app"
+    codesign --force --deep --sign - "$mac/app-mac/$appname" "$mac/$name.app"
   fi
-  exe="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleExecutable' "$dir/app-mac/$appname/Contents/Info.plist")"
+  exe="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleExecutable' "$mac/app-mac/$appname/Contents/Info.plist")"
   "$KIT/signing/make-manifest.sh" --app-id "$id" --version "$version" \
     --platform macos-universal --files app-mac --per-platform \
-    --entry "app-mac/$appname/Contents/MacOS/$exe" "$dir"
-  sign_manifest "$dir" manifest-mac.json
+    --entry "app-mac/$appname/Contents/MacOS/$exe" "$mac"
+  sign_manifest "$mac" manifest-mac.json
 
   if [[ $TEST == 1 ]]; then
-    printf 'TEST BUILD signed with a throwaway key. Never put this on a stick for customers.\n' \
-      > "$dir/TEST-ONLY.txt"
+    for d in "$pc" "$mac"; do
+      printf 'TEST BUILD signed with a throwaway key. Never put this on a stick for customers.\n' \
+        > "$d/TEST-ONLY.txt"
+    done
   fi
   done_apps+=("$name")
 done <<< "$LIST"
