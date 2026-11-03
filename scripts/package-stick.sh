@@ -213,6 +213,9 @@ while read -r id name repo commit version; do
   [[ -n "$app" ]] || fail "$name: no .app in $(basename "$dmg")."
   appname="$(basename "$app")"
   ditto "$app" "$mac/app-mac/$appname"
+  # Some DMGs (PhotoCraft) mark every file with Finder info; codesign refuses
+  # to sign while such extended attributes are there.
+  xattr -cr "$mac/app-mac/$appname"
   craft_versions "$id" "$version" > "$mac/app-mac/craft-versions.json"
   hdiutil detach -quiet "$MOUNT"; MOUNT=""
   icns="$(find "$mac/app-mac/$appname/Contents/Resources" -name '*.icns' -print -quit)"
